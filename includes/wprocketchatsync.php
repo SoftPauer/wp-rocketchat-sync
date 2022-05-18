@@ -25,8 +25,9 @@ final class WP_Rocket_Sync
         require_once WP_ROCKET_SYNC_PLUGIN_DIR . 'includes/load.php';
 
         add_action('init', array($this, 'init'), 0);
-        add_action('user_register', array($this, 'syncRocketOnCreate'), 0);
+        add_action('user_register', array($this, 'createRocketUserOnCreate'), 0);
         add_action('delete_user', array($this, 'onUserDeleted'), 10);
+        register_activation_hook(WP_ROCKET_SYNC_PLUGIN_DIR . "includes/wprocketchatsync.php", "syncRocketOnInstall");
         register_activation_hook(WP_ROCKET_SYNC_PLUGIN_DIR . "includes/database.php", 'static_install');
     }
 
@@ -76,39 +77,37 @@ final class WP_Rocket_Sync
         }
     }
 
-
-    public function syncRocketOnCreate()
+    public function createRocketUserOnCreate($userdata)
     {
+
         $adminAuth = WP_Rocket_Sync::rocketGetAuth("soft", "12qwaszx");
         $adminAuthToken = $adminAuth->data->authToken;
         $adminAuthUserId = $adminAuth->data->userId;
-        $users = get_users();
 
-        foreach ($users as $user) {
-            $userExists = WP_Rocket_Sync::doesUserExist($adminAuthToken, $adminAuthUserId, $user->user_login);
-            if (!$userExists && $user->user_login != "admin") {
-                //generate random password for rocket.chat account 
-                $randomPassword = wp_generate_password();
+        if ($userdata->user_login != 'admin') {
+            //generate random password for rocket.chat account 
+            $randomPassword = wp_generate_password();
 
-                //create new user in rocket 
-                $newUser = WP_Rocket_Sync::createRocketUser($adminAuthToken, $adminAuthUserId, $user, $randomPassword);
-                custom_logs("New User Object: " . json_encode($newUser));
+            //create new user in rocket 
+            $newUser = WP_Rocket_Sync::createRocketUser($adminAuthToken, $adminAuthUserId, $userdata, $randomPassword);
+            custom_logs("New User Object: " . json_encode($newUser));
 
-                //auth new user 
+            //auth new user 
 
-                $newUserAuthObj = WP_Rocket_Sync::rocketGetAuth($newUser->user->username, $randomPassword);
+            $newUserAuthObj = WP_Rocket_Sync::rocketGetAuth($newUser->user->username, $randomPassword);
 
-                //create new personal access token for the user
-                $accessTokenObj = WP_Rocket_Sync::createPersonalAccessToken($newUserAuthObj, "eventr-token");
-                custom_logs("New access Token call: " . json_encode($accessTokenObj));
+            custom_logs("user login object: " . json_encode($newUserAuthObj));
 
-                //insert the rocket access token, userid and wp user id into database
-                WP_Rocket_Sync::getInstance()->database()->insert_user_rocket_token($user->id, $newUser->user->_id, $accessTokenObj->token);
-            }
+            //create new personal access token for the user
+            $accessTokenObj = WP_Rocket_Sync::createPersonalAccessToken($newUserAuthObj, "eventr-token");
+            custom_logs("New access Token call: " . json_encode($accessTokenObj));
+
+            //insert the rocket access token, userid and wp user id into database
+            WP_Rocket_Sync::getInstance()->database()->insert_user_rocket_token($userdata->id, $newUser->user->_id, $accessTokenObj->token);
         }
     }
 
-    public function deleteUserFromRocket($adminRocketToken, $adminRocketUserID, $WPuserName)
+    public static function deleteUserFromRocket($adminRocketToken, $adminRocketUserID, $WPuserName)
     {
         $request_headers = array(
             "X-Auth-token:" . $adminRocketToken,
@@ -124,7 +123,7 @@ final class WP_Rocket_Sync
     }
 
 
-    public function doesUserExist($adminRocketToken, $adminRocketUserID, $WPuserName)
+    public static function doesUserExist($adminRocketToken, $adminRocketUserID, $WPuserName)
     {
 
         $request_headers = array(
@@ -139,11 +138,8 @@ final class WP_Rocket_Sync
         return ($request->success);
     }
 
-    public function createPersonalAccessToken($userObj, $tokenName)
+    public static function createPersonalAccessToken($userObj, $tokenName)
     {
-
-
-
 
         $data = array(
             "tokenName" => $tokenName,
@@ -166,7 +162,7 @@ final class WP_Rocket_Sync
         return ($request);
     }
 
-    public function createRocketUser($adminRocketToken, $adminRocketUserID, $WPuser, $password)
+    public static function createRocketUser($adminRocketToken, $adminRocketUserID, $WPuser, $password)
     {
         $data = array(
             "name" => $WPuser->display_name,
@@ -205,7 +201,7 @@ final class WP_Rocket_Sync
         return $request;
     }
 
-    public function curlRequest($payload, $requestHeaders, $restEndpoint)
+    public static function curlRequest($payload, $requestHeaders, $restEndpoint)
     {
         $ch = curl_init($restEndpoint);
 

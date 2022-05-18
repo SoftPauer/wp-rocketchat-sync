@@ -1,15 +1,16 @@
 <?php
 
 use WP_Rocket_Sync\Database;
+use WP_Rocket_Sync\WP_Rocket_Sync;
 
 /**
  * Plugin Name: WP Rocket.chat Sync
  * Plugin URI: 
  * Description: Provides a way to sync users between wordpress and rocketchat
- * Version: 1.0
+ * Version: 1.1
  * Author: Tahmid Hoque
  * Author URI: 
- * GitHub Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync
+ * GitHub Plugin URI:
  **/
 
 
@@ -23,6 +24,12 @@ function custom_logs($message)
     fclose($file);
 }
 
+function onPluginRegister()
+{
+    initDatabase();
+}
+register_activation_hook(__FILE__, 'onPluginRegister');
+
 function initDatabase()
 {
     require_once('includes/database.php');
@@ -32,10 +39,13 @@ function initDatabase()
     $database->static_install();
 }
 
-register_activation_hook(__FILE__, 'initDatabase');
 
 
+function wpRocketInit()
+{
 
+    return \WP_Rocket_Sync\WP_Rocket_Sync::getInstance();
+}
 
 if (!class_exists('WP_Rocket_Sync\WP_Rocket_Sync')) {
     if (!defined('WP_ROCKET_SYNC_PLUGIN_DIR')) {
@@ -43,14 +53,6 @@ if (!class_exists('WP_Rocket_Sync\WP_Rocket_Sync')) {
     }
 
     include_once WP_ROCKET_SYNC_PLUGIN_DIR . 'includes/wprocketchatsync.php';
-
-
-
-    function wpRocketInit()
-    {
-
-        return \WP_Rocket_Sync\WP_Rocket_Sync::getInstance();
-    }
 
     wpRocketInit();
 }
