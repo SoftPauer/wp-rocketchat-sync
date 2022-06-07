@@ -7,7 +7,7 @@ use WP_Rocket_Sync\WP_Rocket_Sync;
  * Plugin Name: WP Rocket.chat Sync
  * Plugin URI: 
  * Description: Provides a way to sync users between wordpress and rocketchat
- * Version: 1.1
+ * Version: 1.1.1
  * Author: Tahmid Hoque
  * Author URI: 
  * GitHub Plugin URI:

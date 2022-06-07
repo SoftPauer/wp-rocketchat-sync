@@ -25,10 +25,10 @@ final class WP_Rocket_Sync
         require_once WP_ROCKET_SYNC_PLUGIN_DIR . 'includes/load.php';
 
         add_action('init', array($this, 'init'), 0);
-        add_action('user_register', array($this, 'createRocketUserOnCreate'), 0);
+        add_action('user_register', array($this, 'createRocketUserOnCreate'), 10, 2);
         add_action('delete_user', array($this, 'onUserDeleted'), 10);
-        register_activation_hook(WP_ROCKET_SYNC_PLUGIN_DIR . "includes/wprocketchatsync.php", "syncRocketOnInstall");
         register_activation_hook(WP_ROCKET_SYNC_PLUGIN_DIR . "includes/database.php", 'static_install');
+        register_activation_hook(WP_ROCKET_SYNC_PLUGIN_DIR . "includes/wprocketchatsync.php", 'create_admin_auth');
     }
 
     public function init()
@@ -59,6 +59,14 @@ final class WP_Rocket_Sync
         return self::$instance;
     }
 
+    public static function create_admin_auth()
+    {
+        custom_logs("create admin auth");
+        $adminAuth = WP_Rocket_Sync::rocketGetAuth("soft", "12qwaszx");
+        $accessTokenObj = WP_Rocket_Sync::createPersonalAccessToken($adminAuth, "eventr-token");
+        WP_Rocket_Sync::getInstance()->database()->insert_user_rocket_token("adminAuth", $adminAuth->data->userId, $accessTokenObj->token);
+    }
+
     public function onUserDeleted($user_id)
     {
         $user = get_userdata($user_id);
@@ -70,14 +78,14 @@ final class WP_Rocket_Sync
 
         if ($removeUserFromRocket->success == false) {
             custom_logs("Error with removing rocket user: " . $removeUserFromRocket->error);
-            die('Error with this action, Please contact Softpauer!');
+            // die('Error with this action, Please contact Softpauer!');
         } else {
             WP_Rocket_Sync::getInstance()->database()->remove_rocket_user_on_delete($user_id);
             custom_logs("User: " . $user->user_login . " successfully deleted from rocket.chat server");
         }
     }
 
-    public function createRocketUserOnCreate($userdata)
+    public function createRocketUserOnCreate($user_id, $userdata)
     {
 
         $adminAuth = WP_Rocket_Sync::rocketGetAuth("soft", "12qwaszx");
@@ -87,9 +95,11 @@ final class WP_Rocket_Sync
         if ($userdata->user_login != 'admin') {
             //generate random password for rocket.chat account 
             $randomPassword = wp_generate_password();
+            $user = get_user_by('id', $user_id);
+            custom_logs("User: " . json_encode($user));
 
             //create new user in rocket 
-            $newUser = WP_Rocket_Sync::createRocketUser($adminAuthToken, $adminAuthUserId, $userdata, $randomPassword);
+            $newUser = WP_Rocket_Sync::createRocketUser($adminAuthToken, $adminAuthUserId, $user, $randomPassword);
             custom_logs("New User Object: " . json_encode($newUser));
 
             //auth new user 
@@ -103,7 +113,7 @@ final class WP_Rocket_Sync
             custom_logs("New access Token call: " . json_encode($accessTokenObj));
 
             //insert the rocket access token, userid and wp user id into database
-            WP_Rocket_Sync::getInstance()->database()->insert_user_rocket_token($userdata->id, $newUser->user->_id, $accessTokenObj->token);
+            WP_Rocket_Sync::getInstance()->database()->insert_user_rocket_token($user_id, $newUser->user->_id, $accessTokenObj->token);
         }
     }
 
@@ -165,10 +175,10 @@ final class WP_Rocket_Sync
     public static function createRocketUser($adminRocketToken, $adminRocketUserID, $WPuser, $password)
     {
         $data = array(
-            "name" => $WPuser->display_name,
-            "email" => $WPuser->user_email,
+            "name" => $WPuser->data->user_nicename,
+            "email" => $WPuser->data->user_email,
             "password" => $password,
-            "username" => $WPuser->user_login,
+            "username" => $WPuser->data->user_login,
         );
 
         $request_headers = array(
