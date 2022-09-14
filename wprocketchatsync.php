@@ -5,12 +5,12 @@ use WP_Rocket_Sync\WP_Rocket_Sync;
 
 /**
  * Plugin Name: WP Rocket.chat Sync
- * Plugin URI: 
+ * Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync
  * Description: Provides a way to sync users between wordpress and rocketchat
- * Version: 1.1.2
+ * Version: 1.1.3
  * Author: Tahmid Hoque
- * Author URI: 
- * GitHub Plugin URI:
+ * Author URI: https://github.com/SoftPauer/wp-rocketchat-sync
+ * GitHub Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync
  **/
 
 
