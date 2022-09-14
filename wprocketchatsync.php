@@ -1,8 +1,4 @@
 <?php
-
-use WP_Rocket_Sync\Database;
-use WP_Rocket_Sync\WP_Rocket_Sync;
-
 /**
  * Plugin Name: WP Rocket.chat Sync
  * Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync
@@ -13,6 +9,8 @@ use WP_Rocket_Sync\WP_Rocket_Sync;
  * GitHub Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync
  **/
 
+use WP_Rocket_Sync\Database;
+use WP_Rocket_Sync\WP_Rocket_Sync;
 
 function custom_logs($message)
 {
