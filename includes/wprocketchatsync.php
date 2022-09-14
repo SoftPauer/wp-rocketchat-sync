@@ -93,18 +93,17 @@ final class WP_Rocket_Sync
         $adminAuthUserId = $adminAuth->data->userId;
 
         if ($userdata->user_login != 'admin') {
-            //generate random password for rocket.chat account 
-            $randomPassword = wp_generate_password();
+            
             $user = get_user_by('id', $user_id);
             custom_logs("User: " . json_encode($user));
 
             //create new user in rocket 
-            $newUser = WP_Rocket_Sync::createRocketUser($adminAuthToken, $adminAuthUserId, $user, $randomPassword);
+            $newUser = WP_Rocket_Sync::createRocketUser($adminAuthToken, $adminAuthUserId, $user);
             custom_logs("New User Object: " . json_encode($newUser));
 
             //auth new user 
 
-            $newUserAuthObj = WP_Rocket_Sync::rocketGetAuth($newUser->user->username, $randomPassword);
+            $newUserAuthObj = WP_Rocket_Sync::rocketGetAuth($newUser->user->username, $user->data->user_login . $user->data->id);
 
             custom_logs("user login object: " . json_encode($newUserAuthObj));
 
@@ -172,12 +171,12 @@ final class WP_Rocket_Sync
         return ($request);
     }
 
-    public static function createRocketUser($adminRocketToken, $adminRocketUserID, $WPuser, $password)
+    public static function createRocketUser($adminRocketToken, $adminRocketUserID, $WPuser)
     {
         $data = array(
             "name" => $WPuser->data->user_nicename,
             "email" => $WPuser->data->user_email,
-            "password" => $password,
+            "password" => $WPuser->data->user_login . $WPuser->data->id,
             "username" => $WPuser->data->user_login,
         );
 
