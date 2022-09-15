@@ -3,7 +3,7 @@
  * Plugin Name: WP Rocket.chat Sync
  * Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync
  * Description: Provides a way to sync users between wordpress and rocketchat
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Tahmid Hoque
  * Author URI: https://github.com/SoftPauer/wp-rocketchat-sync
  * GitHub Plugin URI: https://github.com/SoftPauer/wp-rocketchat-sync

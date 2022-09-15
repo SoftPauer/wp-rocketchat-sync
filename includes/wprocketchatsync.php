@@ -103,7 +103,7 @@ final class WP_Rocket_Sync
 
             //auth new user 
 
-            $newUserAuthObj = WP_Rocket_Sync::rocketGetAuth($newUser->user->username, $user->data->user_login . $user->data->id);
+            $newUserAuthObj = WP_Rocket_Sync::rocketGetAuth($newUser->user->username, $user->data->user_login . $user->data->ID);
 
             custom_logs("user login object: " . json_encode($newUserAuthObj));
 
@@ -176,7 +176,7 @@ final class WP_Rocket_Sync
         $data = array(
             "name" => $WPuser->data->user_nicename,
             "email" => $WPuser->data->user_email,
-            "password" => $WPuser->data->user_login . $WPuser->data->id,
+            "password" => $WPuser->data->user_login . $WPuser->data->ID,
             "username" => $WPuser->data->user_login,
         );
 
